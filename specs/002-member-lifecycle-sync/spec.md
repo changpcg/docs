@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-07
 
-**Status**: Draft
+**Status**: Implemented (2026-10-07)
 
 **Input**: User description: "requirements.md 7장 남은 과제 중 회원 계정 관련 3건 — 회원 페이지(PHP)에 닉네임·자기소개·비밀번호 바꾸기 화면 만들기, 사이트 설정의 '회원가입 허용' 끄기를 회원 서버에도 적용, 회원 탈퇴를 회원 서버(PHP)까지 적용"
 
