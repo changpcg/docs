@@ -1,18 +1,15 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.1.0 (MINOR: 새 섹션 추가 + 배포를 범위 안으로 넓힘) → 1.1.1 (PATCH: php -S 금지의
-  로컬 점검용 예외를 본문에 명시 — 003 analyze D2)
-- 계기: specs/003-public-deploy-readiness (인터넷 공개 준비)
-- Modified principles:
-  II. 설치 없이 돈다 — 운영 환경(Nginx·PHP-FPM·certbot·systemd)은 앱 의존성이 아님을 명시
-  IV. 데이터는 지키고 스키마는 더하기만 — 백업 범위에 배포 설정 파일(deploy.config.json) 추가
-- Modified sections: 기술·보안 제약 — 구성(배포 설정 파일·Host 머리글 금지), 남용 방지 항목 추가,
-  비밀값은 배포 설정 파일에 넣지 않음, "인터넷 공개는 범위 밖" 문구 삭제
-  개발 흐름과 품질 관문 — 공개 모드 점검 항목 추가
-- Added sections: 공개 운영 (공개 모드)
+- Version change: 1.1.1 → 1.2.0 (MINOR: 원칙 VI 지침의 실질적 변경)
+- Modified principles: VI. 한국어·모든 화면·모든 사람 — "디자인은 네오 브루탈리즘 카드 규칙(NFR-01)을 따른다"를
+  "디자인은 requirements.md의 디자인 규칙(NFR-01)을 따른다(방향을 바꿀 때는 NFR-01만 고침)"로 바꿈.
+  이유: 004-reading-ui-refresh에서 사용자가 '티스토리처럼 담백하게'를 골라 NFR-01을 담백한 카드(1px 선·둥근 모서리·
+  그림자 없음)로 개정. 디자인 방향이 헌법에 박혀 있어 화면 취향을 바꿀 때마다 헌법 개정이 필요했던 결합을 끊음.
+- Added sections: 없음
 - Removed sections: 없음
-- Templates: plan/spec/tasks 템플릿은 실행 시 이 헌법을 읽으므로 수정하지 않음
-- Follow-up TODOs: 없음
+- Templates: 변경 없음 (plan/spec/tasks 템플릿은 실행 시 이 헌법을 읽음)
+- Follow-up TODOs: 없음 (requirements.md 두 사본·원본 문서의 NFR-01 개정은 004 T031에서 함께)
+- Previous: 1.0.0 → 1.1.0 (MINOR: 배포를 범위 안으로, 003) → 1.1.1 (PATCH: php -S 로컬 점검 예외 명시, 003 analyze)
 -->
 
 # 나만의 블로그 Constitution
@@ -84,7 +81,8 @@ Sync Impact Report
 - 화면 문구와 오류는 MUST 한국어로, 사용자가 다음에 할 일을 알 수 있게 쓴다.
 - 375px 휴대폰에서 가로 넘침이 없어야 하고, 라이트·다크 모드 모두에서 읽혀야 한다.
 - '동작 줄이기' 설정을 존중하고, 키보드 포커스 표시와 화면 읽기용 이름을 갖춘다.
-- 디자인은 네오 브루탈리즘 카드 규칙(NFR-01)을 따른다.
+- 디자인은 `requirements.md`의 디자인 규칙(NFR-01)을 따른다. 디자인 방향을 바꿀 때는 NFR-01을 고치며,
+  이 헌법은 고치지 않는다.
 
 근거: 사용자는 한국어 사용자이며 PC·휴대폰을 함께 쓴다.
 
@@ -153,4 +151,4 @@ Sync Impact Report
 - 실행 중 참고 문서는 `requirements.md`이며, 원본은 Claude Docs 문서
   "나만의 블로그 요구사항 정의서"다.
 
-**Version**: 1.1.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.2.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
