@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft
+**Status**: Implemented (2026-10-08)
 
 **Input**: User description: "인터넷 공개(배포) 준비: 공개 전에 회원 서버를 php -S 대신 Apache·Nginx로 실행(문서 루트 public/), HTTPS 적용, 블로그 세션 쿠키에 Secure 추가, 가입 남용(스팸) 막기(가입 횟수 제한·자동 가입 방지), 관리자 비밀번호 교체 강제(BLOG_PASSWORD 없이 켜면 admin1234로 돌아가는 문제), SNS Callback URL·AUTH_URL·BLOG_URL을 공개 주소로 바꿀 수 있게 설정화"
 
