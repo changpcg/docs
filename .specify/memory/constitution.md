@@ -1,15 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.1 → 1.2.0 (MINOR: 원칙 VI 지침의 실질적 변경)
-- Modified principles: VI. 한국어·모든 화면·모든 사람 — "디자인은 네오 브루탈리즘 카드 규칙(NFR-01)을 따른다"를
-  "디자인은 requirements.md의 디자인 규칙(NFR-01)을 따른다(방향을 바꿀 때는 NFR-01만 고침)"로 바꿈.
-  이유: 004-reading-ui-refresh에서 사용자가 '티스토리처럼 담백하게'를 골라 NFR-01을 담백한 카드(1px 선·둥근 모서리·
-  그림자 없음)로 개정. 디자인 방향이 헌법에 박혀 있어 화면 취향을 바꿀 때마다 헌법 개정이 필요했던 결합을 끊음.
+- Version change: 1.2.0 → 1.3.0 (MINOR: 원칙 II 지침의 실질적 변경)
+- Modified principles: II. 설치 없이 돈다 — "외부 라이브러리는 jsDelivr CDN의 marked·DOMPurify·highlight.js·Pretendard로
+  한정"을 "같은 4개를 저장소 안 내장 파일(static/vendor/<이름>-<버전>/, 라이선스·SHA-256 포함)로만 불러온다, 실행 중 CDN 요청
+  없음"으로 바꿈. 근거에 "인터넷이 끊겨도 내 컴퓨터의 블로그는 돌아야 한다"를 더함.
+  이유: 007-offline-assets에서 사용자가 '인터넷 끊겨도 동작'을 골라 CDN을 걷어 냄(라이브러리 버전은 그대로).
 - Added sections: 없음
 - Removed sections: 없음
 - Templates: 변경 없음 (plan/spec/tasks 템플릿은 실행 시 이 헌법을 읽음)
-- Follow-up TODOs: 없음 (requirements.md 두 사본·원본 문서의 NFR-01 개정은 004 T031에서 함께)
+- Follow-up TODOs: 없음 (requirements.md NFR-02·06·07·15와 7장 jsDelivr 행은 007 T009에서 함께)
 - Previous: 1.0.0 → 1.1.0 (MINOR: 배포를 범위 안으로, 003) → 1.1.1 (PATCH: php -S 로컬 점검 예외 명시, 003 analyze)
+  → 1.2.0 (MINOR: 원칙 VI 디자인 문구를 NFR-01로 위임, 004)
 -->
 
 # 나만의 블로그 Constitution
@@ -32,15 +33,17 @@ Sync Impact Report
 
 - 블로그 서버는 MUST Python 3.9 표준 라이브러리만 쓴다(pip 패키지 금지).
 - 회원 서버는 MUST PHP 8 + pdo_sqlite·mbstring(SNS 로그인만 curl)만 쓴다(Composer 금지).
-- 화면은 바닐라 JS로 만들고, 외부 라이브러리는 jsDelivr CDN의 marked·DOMPurify·
-  highlight.js·Pretendard로 한정한다. 새 CDN 의존성은 헌법 개정(MINOR) 없이 추가하지 않는다.
+- 화면은 바닐라 JS로 만들고, 외부 라이브러리는 marked·DOMPurify·highlight.js·Pretendard로
+  한정한다. 이 파일들은 MUST 저장소 안(`static/vendor/<이름>-<버전>/`)에 라이선스와 함께 두고,
+  출처·버전·SHA-256을 `static/vendor/README.md`에 적어 거기서만 불러온다(실행 중 CDN 요청 없음).
+  새 라이브러리는 헌법 개정(MINOR) 없이 추가하지 않는다.
 - 데이터는 SQLite 파일(blog.db, php-auth/db/sqlite.db)과 uploads/ 폴더에 둔다.
 - 그림(미니룸 등)은 코드 안 SVG로 그리며 외부 이미지 주소를 쓰지 않는다.
 - 운영 환경(앞단 웹 서버·인증서·서비스 관리: Nginx·PHP-FPM·certbot·systemd 등)은 앱 의존성이
   아니다. 공개 운영에서만 쓰며, 앱 코드는 위 규칙을 그대로 따른다.
 
 근거: 누구나 `python3`와 `php -S`만으로 켤 수 있어야 하고(개발 모드), 의존성이 적을수록 공격
-면과 고장 지점이 줄어든다.
+면과 고장 지점이 줄어든다. 인터넷이 끊기거나 CDN이 막혀도 내 컴퓨터의 블로그는 돌아야 한다.
 
 ### III. 회원은 한 곳, 연결은 서명으로
 
@@ -151,4 +154,4 @@ Sync Impact Report
 - 실행 중 참고 문서는 `requirements.md`이며, 원본은 Claude Docs 문서
   "나만의 블로그 요구사항 정의서"다.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.3.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
