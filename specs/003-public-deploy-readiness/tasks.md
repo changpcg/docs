@@ -1,12 +1,12 @@
 # Tasks: 인터넷 공개(배포) 준비
 
 **Input**: [plan.md](./plan.md), [spec.md](./spec.md), [research.md](./research.md), [data-model.md](./data-model.md),
-[contracts/](./contracts/), [quickstart.md](./quickstart.md) · **Code root**: `~/Documents/my-blog` · **헌법**: v1.1.0
+[contracts/](./contracts/), [quickstart.md](./quickstart.md) · **Code root**: `~/Documents/my-blog` · **헌법**: v1.1.1
 
 **Tests**: 스펙이 TDD를 요구하지는 않지만, 헌법 품질 관문(완료 기준을 실제 요청으로 재현, 공개 모드 로컬 점검)과 plan이
 `tests/smoke_public_deploy.py`를 산출물로 정했으므로 스토리마다 점검 케이스를 먼저 쓴다. 실제 blog.db·회원 DB는 쓰지 않는다.
 
-**Organization**: 스토리별 단계. 경로는 모두 `my-blog/` 기준(문서 갱신 T045만 `blog-project/`).
+**Organization**: 스토리별 단계. 경로는 모두 `my-blog/` 기준(문서 갱신 T046만 `blog-project/`).
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -60,7 +60,7 @@
 
 ### Tests
 
-- [ ] T013 [P] [US2] `tests/smoke_public_deploy.py`에 US2 케이스: 블로그 http→308 `https://blog.test/경로`, https→HSTS·`vid`/`session` 쿠키 Secure, 믿는 프록시가 아닌 설정(`trusted_proxies: ["127.0.0.2"]`)에서 308, HEAD도 같은 관문, XFP 없음→500, 회원 서버 php -S(예외 없음)→503, 예외 켬→308/`AUTHSESS` secure·HSTS, `oauth_start.php?provider=naver`의 `redirect_uri=https://auth.test/oauth_callback.php`, 관리자 `GET /api/admin/status`의 `deploy`·`auth.sns.callback_url`
+- [ ] T013 [P] [US2] `tests/smoke_public_deploy.py`에 US2 케이스: 블로그 http→308 `https://blog.test/경로`, https→HSTS·`vid`/`session` 쿠키 Secure, 믿는 프록시가 아닌 설정(`trusted_proxies: ["127.0.0.2"]`)에서 308, HEAD도 같은 관문, XFP 없음→500, 회원 서버 php -S(예외 없음)→503, 예외 켬→308/`AUTHSESS` secure·HSTS, `oauth_start.php?provider=naver`의 `redirect_uri=https://auth.test/oauth_callback.php`, 관리자 `GET /api/admin/status`의 `deploy` 값과 `auth: null`(공개 모드 복사본은 https://auth.test에 실제로 연결할 수 없음), 공개 폴더 밖 파일이 열리지 않음(회원 `db/sqlite.db`·`db/sso.key`·`oauth.config.php`, 블로그 `blog.db`·`deploy.config.json`·`php-auth/db/sso.key` 모두 404, SC-004)
 
 ### Blog server
 
@@ -81,8 +81,9 @@
 - [ ] T022 [P] [US2] `deploy/nginx-my-blog.conf.example`: blog 서버 블록(`proxy_pass http://127.0.0.1:8000`, `Host`, `X-Forwarded-For $proxy_add_x_forwarded_for`, `X-Forwarded-Proto $scheme`, `client_max_body_size 45m`), auth 서버 블록(`root /srv/my-blog/php-auth/public`, `try_files $uri $uri/ =404`, `fastcgi_pass unix:/run/php/my-blog.sock`, 점 파일 거부), `server_tokens off`, 80번만 쓰고 certbot이 443·이동을 더한다는 주석
 - [ ] T023 [P] [US2] `deploy/my-blog.service.example`: `User=myblog`, `WorkingDirectory=/srv/my-blog`, `Environment=HOST=127.0.0.1 PORT=8000`, `EnvironmentFile=/etc/my-blog/blog.env`(BLOG_PASSWORD, root 600), `ExecStart=/usr/bin/python3 server.py`, `Restart=on-failure`, `RestartPreventExitStatus=78`, `NoNewPrivileges`·`ProtectSystem=strict`·`ReadWritePaths=/srv/my-blog`·`PrivateTmp`
 - [ ] T024 [P] [US2] `deploy/php-fpm-my-blog.conf.example`: 풀 `[my-blog]`, `user/group = myblog`, `listen = /run/php/my-blog.sock`, `listen.owner/group = www-data`, `pm = ondemand`, `php_admin_flag[display_errors] = off`, `catch_workers_output = yes`, `clear_env`는 기본값(yes) 유지 주석
-- [ ] T025 [US2] `deploy/README.md` 한국어 배포 안내(1시간 목표, SC-003): 준비물(VPS·도메인·DNS A 레코드 2개) → 패키지(research R13) → `myblog` 사용자·`/srv/my-blog` 배치·권한(DB·키·설정 600/700, `php-auth/public`만 Nginx가 읽기) → `deploy.config.json`·`/etc/my-blog/blog.env` → systemd·PHP-FPM·Nginx(기본 사이트 제거) → `certbot --nginx --redirect` → 방화벽(22·80·443) → SNS 콘솔 콜백 등록 → `/etc/hosts` 팁(R9) → 점검(quickstart D) → 백업(두 DB 함께, 헌법 IV)·업데이트·문제 해결(리디렉션 반복·502·종료 코드 78)
-- [ ] T026 [US2] 검증: `tests/smoke_public_deploy.py`의 US2 케이스 + quickstart C 손 점검(`deploy.config.example.json` 복사본)
+- [ ] T025 [US2] `deploy/README.md` 한국어 배포 안내(1시간 목표, SC-003): 준비물(VPS·도메인·DNS A 레코드 2개, 두 주소는 반드시 같은 도메인의 하위 도메인 — 쿠키 SameSite 때문에 함께 로그아웃·블로그 입장에 필요) → 패키지(research R13) → `myblog` 사용자·`/srv/my-blog` 배치·권한(DB·키·설정 600/700, `php-auth/public`만 Nginx가 읽기) → `deploy.config.json`·`/etc/my-blog/blog.env` → systemd·PHP-FPM·Nginx(기본 사이트 제거) → `certbot --nginx --redirect` → 방화벽(22·80·443) → SNS 콘솔 콜백 등록 → `/etc/hosts` 팁(R9) → 점검(quickstart D) → 백업(두 DB 함께, 헌법 IV)·업데이트·문제 해결(리디렉션 반복·502·종료 코드 78)
+- [ ] T026 [US2] 배포 예시 리허설(SC-003): 작업 환경(Ubuntu 24.04, PHP 8.3)에 `nginx`·`php8.3-fpm`을 설치하고 `deploy/` 예시(자체 서명 인증서로 443)로 두 서버를 띄워 quickstart D의 머리글·쿠키·404·함께 로그아웃을 점검, 예시 파일에서 틀린 곳을 고침
+- [ ] T027 [US2] 검증: `tests/smoke_public_deploy.py`의 US2 케이스 + quickstart C 손 점검(`deploy.config.example.json` 복사본)
 
 **Checkpoint**: US1+US2로 공개 배포가 가능하다(배포 안내대로 VPS에 올릴 수 있음).
 
@@ -94,10 +95,10 @@
 
 **Independent Test**: 믿는 프록시(127.0.0.1)에서 `X-Forwarded-For` A/B를 바꿔 댓글 비밀번호를 틀려 본다(quickstart B, US3 줄).
 
-- [ ] T027 [P] [US3] `tests/smoke_public_deploy.py`에 US3 케이스: 공개 모드 복사본에서 관리자가 글을 쓰고 방문자 댓글을 단 뒤, XFF A로 5번 틀리면 A는 429·XFF B는 403, 가짜 XFF 왼쪽 값으로는 우회 안 됨(`X-Forwarded-For: B, A`는 A로 셈)
-- [ ] T028 [US3] `server.py` `Handler.client_ip()`: contracts/public-mode-http.md 알고리즘(믿는 프록시에서 온 경우만 XFF 오른쪽부터, IP 형식 아니면 peer), `api_DELETE_comments`의 `self.client_address[0]`을 교체
-- [ ] T029 [P] [US3] `php-auth/src/config.php` `client_ip()`(같은 알고리즘)로 옮기고 `php-auth/src/auth.php`의 기존 `client_ip()` 삭제 — 로그인 잠금 `login_attempts.ip`가 새 함수를 씀
-- [ ] T030 [US3] 검증: `tests/smoke_public_deploy.py`의 US3 케이스 + 개발 모드(믿는 프록시 없음)에서 XFF가 무시되는지
+- [ ] T028 [P] [US3] `tests/smoke_public_deploy.py`에 US3 케이스: 공개 모드 복사본에서 관리자가 글을 쓰고 방문자 댓글을 단 뒤, XFF A로 5번 틀리면 A는 429·XFF B는 403, 가짜 XFF 왼쪽 값으로는 우회 안 됨(`X-Forwarded-For: B, A`는 A로 셈)
+- [ ] T029 [US3] `server.py` `Handler.client_ip()`: contracts/public-mode-http.md 알고리즘(믿는 프록시에서 온 경우만 XFF 오른쪽부터, IP 형식 아니면 peer), `api_DELETE_comments`의 `self.client_address[0]`을 교체
+- [ ] T030 [P] [US3] `php-auth/src/config.php` `client_ip()`(같은 알고리즘)로 옮기고 `php-auth/src/auth.php`의 기존 `client_ip()` 삭제 — 로그인 잠금 `login_attempts.ip`가 새 함수를 씀
+- [ ] T031 [US3] 검증: `tests/smoke_public_deploy.py`의 US3 케이스 + 개발 모드(믿는 프록시 없음)에서 XFF가 무시되는지
 
 ---
 
@@ -107,28 +108,28 @@
 
 **Independent Test**: 개발 모드 임시 복사본에서 봇 3종·IP 4번째·전체 한도를 시도하고 관리자 현황을 본다(quickstart B, US4 줄).
 
-- [ ] T031 [P] [US4] `tests/smoke_public_deploy.py`에 US4 케이스(개발 모드 복사본, `trusted_proxies: ["127.0.0.1"]`, `site_per_hour: 4`): 숨은 칸 채움·토큰 없음·3초 미만 → 가입 안 됨, XFF X로 3개 후 4번째 F4, XFF Y 1개 뒤 XFF Z는 F5, 믿는 프록시 없는 복사본에서는 XFF만 바꿔도 4번째 F4, 관리자 `/api/admin/status`의 `auth.signups.blocked` 합 > 0·응답 어디에도 IP 없음. 폼은 먼저 모두 받아 두고 3초를 한 번만 기다린다
-- [ ] T032 [P] [US4] `php-auth/src/db.php` `signup_log` 표: "`id` INTEGER PRIMARY KEY AUTOINCREMENT, `ip` TEXT NOT NULL, `kind` TEXT NOT NULL(`ok`·`limit_ip`·`limit_site`·`bot`), `created_at` INTEGER NOT NULL" + 인덱스 `(kind, created_at)`, `(ip, kind, created_at)` (`IF NOT EXISTS`)
-- [ ] T033 [US4] `php-auth/src/signup_guard.php` 새 파일 — 폼 보호: `signup_form_token(?string $posted)`(`$_SESSION['signup_forms']` "세션당 최근 5개", "30분 지난 항목은 발급·확인 때 정리", 보낸 토큰이 유효하면 그대로), `signup_guard_fields(string $token)`(hidden `form_token` + 화면 밖 `website` 칸: `aria-hidden="true"`, `tabindex="-1"`, `autocomplete="off"`, 라벨 "이 칸은 비워 두세요"), `signup_bot_error()`(contracts/signup-guard.md 4단계: F1·F2·F3과 `bot` 기록 규칙), `bot_check_enabled()`가 false면 모두 건너뜀
-- [ ] T034 [US4] `php-auth/src/signup_guard.php` 횟수 제한: `log_signup(string $kind)`, `signup_limit_kind(PDO $pdo)`("같은 ip의 최근 3600초 ok 수 ≥ per_ip_per_hour → limit_ip", "전체 최근 3600초 ok 수 ≥ site_per_hour → limit_site"), `create_member_guarded(callable $create)` — `BEGIN IMMEDIATE` → "created_at < now - 86400" 삭제 → 판정 → 생성 + `ok` 기록 → `COMMIT`, 막히면 `ROLLBACK` 후 막힌 기록, 예외면 `ROLLBACK`. `signup_stats()`(data-model §5, IP 없음)
-- [ ] T035 [US4] `php-auth/public/register.php`: GET에서 한도면 폼 대신 F4/F5, 폼에 `signup_guard_fields()`, POST `action=signup` 처리 순서(contracts/signup-guard.md 1~6), 폼 위 오류 `role="alert"`, 성공 시 토큰 소모. `action=check`는 보호 단계 없이 지금대로
-- [ ] T036 [US4] `php-auth/public/social_signup.php`: 같은 보호 적용, 기존 `beginTransaction()` 묶음(`social_user_id`·`create_user`·`link_social`)을 `create_member_guarded()` 안으로
-- [ ] T037 [P] [US4] `php-auth/public/style.css`: 숨은 칸 클래스(화면 밖 배치, `display:none` 아님), 폼 오류 상자
-- [ ] T038 [US4] `php-auth/public/bridge_status.php`에 `"signups": signup_stats()` 추가
-- [ ] T039 [US4] `static/app.js` '가입 현황(최근 24시간)' 상자: 새 가입 N · 막힘(한 곳에서 너무 많이 a · 전체 한도 b · 자동 가입 의심 c), `site_limited_now` 문구, 연결 실패 문구(contracts/admin-status.md) + `static/style.css`
-- [ ] T040 [US4] `tests/smoke_member_lifecycle.py`: 가입 때 `form_token`·빈 `website`를 보내고 폼을 받은 뒤 3초 기다림
-- [ ] T041 [US4] 검증: `tests/smoke_public_deploy.py`의 US4 케이스 + `php-auth/public/register.php`를 실제 브라우저로 열어 회원가입 1번(추가 입력 없이 한 번에 됨, SC-006)
+- [ ] T032 [P] [US4] `tests/smoke_public_deploy.py`에 US4 케이스(개발 모드 복사본, `trusted_proxies: ["127.0.0.1"]`, `site_per_hour: 4`): 숨은 칸 채움·토큰 없음·3초 미만 → 가입 안 됨, XFF X로 3개 후 4번째 F4, XFF Y 1개 뒤 XFF Z는 F5, 믿는 프록시 없는 복사본에서는 XFF만 바꿔도 4번째 F4, 관리자 `/api/admin/status`의 `auth.signups.blocked` 합 > 0·`auth.sns.callback_url`이 `auth_url + /oauth_callback.php`·응답 어디에도 IP 없음. 폼은 먼저 모두 받아 두고 3초를 한 번만 기다린다
+- [ ] T033 [P] [US4] `php-auth/src/db.php` `signup_log` 표: "`id` INTEGER PRIMARY KEY AUTOINCREMENT, `ip` TEXT NOT NULL, `kind` TEXT NOT NULL(`ok`·`limit_ip`·`limit_site`·`bot`), `created_at` INTEGER NOT NULL" + 인덱스 `(kind, created_at)`, `(ip, kind, created_at)` (`IF NOT EXISTS`)
+- [ ] T034 [US4] `php-auth/src/signup_guard.php` 새 파일 — 폼 보호: `signup_form_token(?string $posted)`(`$_SESSION['signup_forms']` "세션당 최근 5개", "30분 지난 항목은 발급·확인 때 정리", 보낸 토큰이 유효하면 그대로), `signup_guard_fields(string $token)`(hidden `form_token` + 화면 밖 `website` 칸: `aria-hidden="true"`, `tabindex="-1"`, `autocomplete="off"`, 라벨 "이 칸은 비워 두세요"), `signup_bot_error()`(contracts/signup-guard.md 4단계: F1·F2·F3과 `bot` 기록 규칙), `bot_check_enabled()`가 false면 모두 건너뜀
+- [ ] T035 [US4] `php-auth/src/signup_guard.php` 횟수 제한: `log_signup(string $kind)`, `signup_limit_kind(PDO $pdo)`("같은 ip의 최근 3600초 ok 수 ≥ per_ip_per_hour → limit_ip", "전체 최근 3600초 ok 수 ≥ site_per_hour → limit_site"), `create_member_guarded(callable $create)` — `BEGIN IMMEDIATE` → "created_at < now - 86400" 삭제 → 판정 → 생성 + `ok` 기록 → `COMMIT`, 막히면 `ROLLBACK` 후 막힌 기록, 예외면 `ROLLBACK`. `signup_stats()`(data-model §5, IP 없음)
+- [ ] T036 [US4] `php-auth/public/register.php`: GET에서 한도면 폼 대신 F4/F5, 폼에 `signup_guard_fields()`, POST `action=signup` 처리 순서(contracts/signup-guard.md 1~6), 폼 위 오류 `role="alert"`, 성공 시 토큰 소모. `action=check`는 보호 단계 없이 지금대로
+- [ ] T037 [US4] `php-auth/public/social_signup.php`: 같은 보호 적용, 기존 `beginTransaction()` 묶음(`social_user_id`·`create_user`·`link_social`)을 `create_member_guarded()` 안으로
+- [ ] T038 [P] [US4] `php-auth/public/style.css`: 숨은 칸 클래스(화면 밖 배치, `display:none` 아님), 폼 오류 상자
+- [ ] T039 [US4] `php-auth/public/bridge_status.php`에 `"signups": signup_stats()` 추가
+- [ ] T040 [US4] `static/app.js` '가입 현황(최근 24시간)' 상자: 새 가입 N · 막힘(한 곳에서 너무 많이 a · 전체 한도 b · 자동 가입 의심 c), `site_limited_now` 문구, 연결 실패 문구(contracts/admin-status.md) + `static/style.css`
+- [ ] T041 [US4] `tests/smoke_member_lifecycle.py`: 가입 때 `form_token`·빈 `website`를 보내고 폼을 받은 뒤 3초 기다림
+- [ ] T042 [US4] 검증: `tests/smoke_public_deploy.py`의 US4 케이스 + `php-auth/public/register.php`를 실제 브라우저로 열어 회원가입 1번(추가 입력 없이 한 번에 됨, SC-006)
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T042 [P] `README.md`: 실행 모드(개발/공개), `deploy.config.json`, 인터넷 공개는 `deploy/README.md`, 백업 범위(blog.db·uploads·php-auth/db·oauth.config.php·deploy.config.json, 두 DB 함께), 개발 모드 가입 한도 바꾸는 법
-- [ ] T043 [P] `php-auth/README.md`·`php-auth/oauth.config.example.php`: 공개 모드 콜백은 `auth_url + /oauth_callback.php`로 자동, `redirect_uri`는 개발 모드에서만 쓰임
-- [ ] T044 전체 회귀: quickstart A(기존 blog.db로 개발 모드 시작, `smoke_security_gaps.py`·`smoke_member_lifecycle.py`) + B(`smoke_public_deploy.py` 전체)
-- [ ] T045 요구사항 문서 갱신(헌법 V): `blog-project/requirements.md`와 `my-blog/docs/requirements.md`(두 사본 동일 유지)에 SEC-13(HTTPS 전용·HSTS·Secure)·SEC-14(가입 남용 방지)·SEC-15(공개 모드 관리자 비밀번호)·SEC-16(실제 방문자 IP)·NFR-13(실행 모드·배포 설정 파일)·NFR-14(공개 운영 방법) 행 추가, SEC-03·05·06·10, NFR-07·08(백업 범위)·09·12 문구 갱신, 7장 '인터넷 공개(배포)와 HTTPS' 과제 갱신(준비 완료, 실제 배포는 운영자)
-- [ ] T046 원본 Claude Docs 문서 "나만의 블로그 요구사항 정의서"(https://claude.ai/artifact/RwM5NYppuiRaTd2v61Phud)에 T045와 같은 변경 반영
-- [ ] T047 커밋: `my-blog`(코드·deploy·tests)와 `blog-project`(tasks 체크·requirements.md). push는 사용자 맥에서(`git push`)
+- [ ] T043 [P] `README.md`: 실행 모드(개발/공개), `deploy.config.json`, 인터넷 공개는 `deploy/README.md`, 백업 범위(blog.db·uploads·php-auth/db·oauth.config.php·deploy.config.json, 두 DB 함께), 개발 모드 가입 한도 바꾸는 법
+- [ ] T044 [P] `php-auth/README.md`·`php-auth/oauth.config.example.php`: 공개 모드 콜백은 `auth_url + /oauth_callback.php`로 자동, `redirect_uri`는 개발 모드에서만 쓰임
+- [ ] T045 전체 회귀: quickstart A(기존 blog.db로 개발 모드 시작, `smoke_security_gaps.py`·`smoke_member_lifecycle.py`) + B(`smoke_public_deploy.py` 전체) + `server.py`·`php-auth/`에서 `Host` 머리글로 주소를 만드는 곳이 없는지 grep 확인(FR-007)
+- [ ] T046 요구사항 문서 갱신(헌법 V): `blog-project/requirements.md`와 `my-blog/docs/requirements.md`(두 사본 동일 유지)에 SEC-13(HTTPS 전용·HSTS·Secure)·SEC-14(가입 남용 방지)·SEC-15(공개 모드 관리자 비밀번호)·SEC-16(실제 방문자 IP)·NFR-13(실행 모드·배포 설정 파일)·NFR-14(공개 운영 방법) 행 추가, SEC-03·05·06·10, NFR-07·08(백업 범위)·09·12 문구 갱신, 7장 '인터넷 공개(배포)와 HTTPS' 과제 갱신(준비 완료, 실제 배포는 운영자)
+- [ ] T047 원본 Claude Docs 문서 "나만의 블로그 요구사항 정의서"(https://claude.ai/artifact/RwM5NYppuiRaTd2v61Phud)에 T046과 같은 변경 반영
+- [ ] T048 커밋: `my-blog`(코드·deploy·tests)와 `blog-project`(tasks 체크·requirements.md). push는 사용자 맥에서(`git push`)
 
 ---
 
@@ -137,31 +138,31 @@
 ### Phase Dependencies
 
 - Setup(T001~T002) → Foundational(T003~T007) → 스토리 단계들 → Polish.
-- `server.py`를 고치는 작업은 서로 순서대로: T003 → T006 → T009 → T010 → T011 → T014 → T015 → T016 → T028.
-- `php-auth/src/config.php`: T004 → T017 → T029. `php-auth/src/auth.php`: T005 → T017(호출 추가) → T018 → T029(삭제).
-- `php-auth/src/signup_guard.php`: T033 → T034. `bridge_status.php`: T020 → T038. `static/app.js`: T021 → T039.
-- `tests/smoke_public_deploy.py`: T007 → T008 → T013 → T027 → T031.
+- `server.py`를 고치는 작업은 서로 순서대로: T003 → T006 → T009 → T010 → T011 → T014 → T015 → T016 → T029.
+- `php-auth/src/config.php`: T004 → T017 → T030. `php-auth/src/auth.php`: T005 → T017(호출 추가) → T018 → T030(삭제).
+- `php-auth/src/signup_guard.php`: T034 → T035. `bridge_status.php`: T020 → T039. `static/app.js`: T021 → T040.
+- `tests/smoke_public_deploy.py`: T007 → T008 → T013 → T028 → T032.
 
 ### User Story Dependencies
 
 - **US1**: Foundational만 필요.
 - **US2**: Foundational만 필요(US1과 같은 `server.py`라 순서만 이어서). 
 - **US3**: Foundational의 `is_trusted()`·`is_trusted_proxy()`만 필요. US2 관문과 독립.
-- **US4**: T029(PHP `client_ip()`)를 쓰므로 US3의 PHP 부분 뒤. 관리자 상자는 US2의 T016·T020·T021 뒤.
+- **US4**: T030(PHP `client_ip()`)를 쓰므로 US3의 PHP 부분 뒤. 관리자 상자는 US2의 T016·T020·T021 뒤.
 
 ### Parallel Opportunities
 
 - T002와 T003, T004와 T003, T007(테스트 뼈대)은 서로 다른 파일.
 - 스토리마다 테스트 케이스 작업([P])은 구현과 다른 파일이라 먼저 함께 쓸 수 있다.
 - US2의 배포 예시 T022·T023·T024는 서로 독립, T019(oauth.php)도 독립.
-- US3의 T028(블로그)과 T029(회원 서버)는 다른 파일.
-- US4의 T032(db.php)·T037(style.css)은 T033과 함께.
+- US3의 T029(블로그)과 T030(회원 서버)는 다른 파일.
+- US4의 T033(db.php)·T038(style.css)은 T034와 함께.
 
 ## Parallel Example: User Story 2
 
 ```text
 함께: T013 테스트 케이스 · T019 oauth.php redirect_uri · T022 nginx 예시 · T023 systemd 예시 · T024 php-fpm 예시
-이어서: T014 → T015 → T016 (server.py) / T017 → T018 → T020 (회원 서버) → T021 (화면) → T025 (안내) → T026 (검증)
+이어서: T014 → T015 → T016 (server.py) / T017 → T018 → T020 (회원 서버) → T021 (화면) → T025 (안내) → T026 (리허설) → T027 (검증)
 ```
 
 ## Implementation Strategy

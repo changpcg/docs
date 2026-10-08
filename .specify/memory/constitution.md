@@ -1,6 +1,7 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.1.0 (MINOR: 새 섹션 추가 + 배포를 범위 안으로 넓힘)
+- Version change: 1.0.0 → 1.1.0 (MINOR: 새 섹션 추가 + 배포를 범위 안으로 넓힘) → 1.1.1 (PATCH: php -S 금지의
+  로컬 점검용 예외를 본문에 명시 — 003 analyze D2)
 - 계기: specs/003-public-deploy-readiness (인터넷 공개 준비)
 - Modified principles:
   II. 설치 없이 돈다 — 운영 환경(Nginx·PHP-FPM·certbot·systemd)은 앱 의존성이 아님을 명시
@@ -114,6 +115,7 @@ Sync Impact Report
 - 관리자: 비밀번호가 없거나 기본값(admin1234)이거나 12자 미만·영문+숫자 미포함이면 블로그
   서버가 켜지지 않는다.
 - 실행: 회원 서버는 `php -S`가 아닌 정식 웹 서버(Nginx + PHP-FPM)에서 public/만 문서 루트로 둔다.
+  예외는 로컬 점검용 `ALLOW_PHP_DEV_SERVER=1` 하나뿐이며, 실제 공개 서버에서는 쓰지 않는다.
   블로그 서버는 앞단 웹 서버 뒤에서 127.0.0.1에만 연다. 블로그·회원 서버는 서로 다른 https 주소를 쓴다.
 - 실제 IP: IP 기준 제한은 MUST 실제 방문자 IP로 센다. X-Forwarded-For·X-Forwarded-Proto는
   배포 설정에 적은 믿는 프록시에서 온 것만 믿는다.
@@ -151,4 +153,4 @@ Sync Impact Report
 - 실행 중 참고 문서는 `requirements.md`이며, 원본은 Claude Docs 문서
   "나만의 블로그 요구사항 정의서"다.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
+**Version**: 1.1.1 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08

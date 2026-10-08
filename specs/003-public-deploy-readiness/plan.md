@@ -4,7 +4,7 @@
 
 **Input**: Feature specification from `/specs/003-public-deploy-readiness/spec.md`
 
-**Code root**: `~/Documents/my-blog` (GitHub `changpcg/my-blog`) · **헌법**: v1.1.0 (2026-10-08 개정, '공개 운영 (공개 모드)')
+**Code root**: `~/Documents/my-blog` (GitHub `changpcg/my-blog`) · **헌법**: v1.1.1 (2026-10-08 개정, '공개 운영 (공개 모드)')
 
 ## Summary
 
@@ -55,7 +55,7 @@ HSTS 1년(`includeSubDomains` 없음)
 | II 설치 없이 돈다 | 앱 코드는 표준 라이브러리·PHP 기본 기능만. Nginx·PHP-FPM·certbot·systemd는 운영 환경(v1.1.0 II). 개발 모드 실행법 그대로 | 통과 |
 | III 회원은 한 곳, 서명으로 | 가입·횟수 제한은 회원 서버에서. `bridge_status`는 HMAC + 1분 만료(읽기 전용이라 1회용 불필요). 가입은 POST + CSRF 유지 | 통과 |
 | IV 데이터 보존 | `signup_log` 표 추가만. 설정 오류면 DB를 열지 않음. 백업 범위에 `deploy.config.json` | 통과 |
-| V 요구사항 ID | 새 SEC-13~16·NFR-13~14 + SEC-03·05·06·10, NFR-07·09·12, 7장 갱신 작업 포함 | 통과 |
+| V 요구사항 ID | 새 SEC-13~16·NFR-13~14 + SEC-03·05·06·10, NFR-07·08·09·12, 7장 갱신 작업 포함 | 통과 |
 | VI 한국어·접근성 | 모든 안내 한국어. 숨은 칸은 `aria-hidden`·`tabindex=-1`, 오류는 `role="alert"`. 새 상자 다크 모드·375px | 통과 |
 | 기술·보안 제약 | Host 머리글 미사용, 비밀값은 설정 파일 금지, 남용 방지 항목 충족 | 통과 |
 | 공개 운영 (공개 모드) | HTTPS 전용·HSTS·Secure·관리자 비밀번호·php -S 금지·127.0.0.1·실제 IP·안전한 실패·기준 환경을 각각 FR로 구현 | 통과(예외 1건은 아래 Complexity Tracking) |
@@ -129,4 +129,4 @@ my-blog/
 
 | 예외 | 왜 필요한가 | 더 단순한 방법을 버린 이유 |
 | --- | --- | --- |
-| 공개 모드 회원 서버의 php -S 거절에 `ALLOW_PHP_DEV_SERVER=1` 예외 | 헌법 품질 관문 "공개 모드 변경은 로컬에서 믿는 프록시 머리글로 점검"을 회원 서버에도 하려면 php -S로 공개 모드를 띄워야 함 | 예외 없이 막으면 회원 서버 공개 모드 동작(308·Secure·HSTS·콜백)을 배포 전에 확인할 방법이 없음. 이 값은 php -S에서만 의미가 있고 PHP-FPM은 기본으로 환경변수를 지워 운영에 영향이 없음 |
+| 공개 모드 회원 서버의 php -S 거절에 `ALLOW_PHP_DEV_SERVER=1` 예외(헌법 1.1.1에 명시) | 헌법 품질 관문 "공개 모드 변경은 로컬에서 믿는 프록시 머리글로 점검"을 회원 서버에도 하려면 php -S로 공개 모드를 띄워야 함 | 예외 없이 막으면 회원 서버 공개 모드 동작(308·Secure·HSTS·콜백)을 배포 전에 확인할 방법이 없음. 이 값은 php -S에서만 의미가 있고 PHP-FPM은 기본으로 환경변수를 지워 운영에 영향이 없음 |
