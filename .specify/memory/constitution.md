@@ -1,13 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: (template) → 1.0.0
-- Modified principles: 템플릿 자리표시자 5개 → 원칙 6개로 새로 정의
-  I. 서버가 최종 판단한다 / II. 설치 없이 돈다 / III. 회원은 한 곳, 연결은 서명으로 /
-  IV. 데이터는 지키고 스키마는 더하기만 / V. 요구사항 ID로 추적한다 / VI. 한국어·모든 화면·모든 사람
-- Added sections: 기술·보안 제약, 개발 흐름과 품질 관문, Governance
+- Version change: 1.0.0 → 1.1.0 (MINOR: 새 섹션 추가 + 배포를 범위 안으로 넓힘)
+- 계기: specs/003-public-deploy-readiness (인터넷 공개 준비)
+- Modified principles:
+  II. 설치 없이 돈다 — 운영 환경(Nginx·PHP-FPM·certbot·systemd)은 앱 의존성이 아님을 명시
+  IV. 데이터는 지키고 스키마는 더하기만 — 백업 범위에 배포 설정 파일(deploy.config.json) 추가
+- Modified sections: 기술·보안 제약 — 구성(배포 설정 파일·Host 머리글 금지), 남용 방지 항목 추가,
+  비밀값은 배포 설정 파일에 넣지 않음, "인터넷 공개는 범위 밖" 문구 삭제
+  개발 흐름과 품질 관문 — 공개 모드 점검 항목 추가
+- Added sections: 공개 운영 (공개 모드)
 - Removed sections: 없음
 - Templates: plan/spec/tasks 템플릿은 실행 시 이 헌법을 읽으므로 수정하지 않음
-- Follow-up TODOs: 없음 (Ratified = Spec Kit 도입일 2026-10-07)
+- Follow-up TODOs: 없음
 -->
 
 # 나만의 블로그 Constitution
@@ -34,9 +38,11 @@ Sync Impact Report
   highlight.js·Pretendard로 한정한다. 새 CDN 의존성은 헌법 개정(MINOR) 없이 추가하지 않는다.
 - 데이터는 SQLite 파일(blog.db, php-auth/db/sqlite.db)과 uploads/ 폴더에 둔다.
 - 그림(미니룸 등)은 코드 안 SVG로 그리며 외부 이미지 주소를 쓰지 않는다.
+- 운영 환경(앞단 웹 서버·인증서·서비스 관리: Nginx·PHP-FPM·certbot·systemd 등)은 앱 의존성이
+  아니다. 공개 운영에서만 쓰며, 앱 코드는 위 규칙을 그대로 따른다.
 
-근거: 누구나 `python3`와 `php -S`만으로 켤 수 있어야 하고, 의존성이 적을수록 공격 면과
-고장 지점이 줄어든다.
+근거: 누구나 `python3`와 `php -S`만으로 켤 수 있어야 하고(개발 모드), 의존성이 적을수록 공격
+면과 고장 지점이 줄어든다.
 
 ### III. 회원은 한 곳, 연결은 서명으로
 
@@ -55,8 +61,8 @@ Sync Impact Report
 - 기능이 늘어도 MUST 기존 blog.db·회원 DB를 그대로 열 수 있어야 한다. 스키마 변경은
   필요한 칸·표를 자동으로 더하는 방식만 쓰고, 기존 글·댓글·계정을 지우거나 바꾸지 않는다.
 - 서버를 다시 켜도 글·댓글·블로그 로그인(2주)이 유지되어야 한다.
-- 백업 범위는 blog.db·uploads/·php-auth/db/·php-auth/oauth.config.php이며, 회원 DB와
-  blog.db는 MUST 함께 백업·복원한다.
+- 백업 범위는 blog.db·uploads/·php-auth/db/·php-auth/oauth.config.php·deploy.config.json이며,
+  회원 DB와 blog.db는 MUST 함께 백업·복원한다.
 - 삭제는 연관 데이터(댓글·공감·이웃·방문 기록)까지 일관되게 처리하고, 답글이 남은 댓글은
   "삭제된 댓글입니다" 자리로 남긴다.
 
@@ -83,17 +89,41 @@ Sync Impact Report
 
 ## 기술·보안 제약
 
-- 구성: 블로그 서버(Python, 기본 127.0.0.1:8000) + 회원 서버(PHP, 8080). 주소·포트는
-  PORT·HOST·AUTH_URL·BLOG_URL 환경변수로만 바꾼다.
+- 구성: 블로그 서버(Python, 기본 127.0.0.1:8000) + 회원 서버(PHP, 8080). 실행 모드와 공개 주소는
+  두 서버가 함께 읽는 배포 설정 파일(deploy.config.json, 웹 폴더 밖) 한 곳에 둔다. 개발 모드에서는
+  PORT·HOST·AUTH_URL·BLOG_URL 환경변수로도 바꿀 수 있다. 주소는 MUST NOT 요청의 Host 머리글로 만든다.
 - 세션: HttpOnly 쿠키, 로그인 시 세션 번호 재발급, 블로그 쿠키 SameSite=Strict,
   PHP 쿠키 SameSite=Lax.
 - 무차별 대입: 비밀번호를 받는 모든 입구는 횟수 제한 또는 지연을 MUST 갖는다.
+- 남용: 가입처럼 자동으로 남용될 수 있는 입구는 MUST 서버에서 IP 기준 횟수 제한과 자동 가입
+  방지(외부 서비스 없이)를 갖는다.
 - 업로드: 허용 목록 형식·크기만 받고, 저장 이름은 무작위, nosniff, 사진 외 파일은
   attachment로 내려준다.
 - 비밀: DB·키 파일은 웹 폴더 밖, sso.key 권한 600, 외부 API 키는 등록 여부만 화면에 보인다.
+  비밀값(관리자 비밀번호 등)은 배포 설정 파일에 넣지 않는다.
 - 외부 요청: 서버의 외부 호출은 8초 제한과 캐시를 두고, 실패 시 직전 값을 유지한다.
-- 인터넷 공개(배포)는 현재 범위 밖이다. 배포를 다루는 기능은 HTTPS·Secure 쿠키·
-  관리자 비밀번호 교체를 함께 다뤄야 한다.
+
+## 공개 운영 (공개 모드)
+
+- 실행 모드는 두 가지다. **개발 모드**(기본)는 지금 실행 방법(`python3 server.py`, `php -S`)과
+  http://localhost 주소를 MUST 그대로 지원한다. **공개 모드**는 배포 설정 파일에서만 켜며, 켜면
+  아래 규칙을 MUST 모두 강제한다.
+- HTTPS 전용: http 요청은 https 공개 주소로 옮기고 HSTS를 보낸다. 앱 서버는 인증서를 직접 다루지
+  않고, 앞단 웹 서버(Nginx)가 TLS를 맡는다.
+- 쿠키: 두 서버가 만드는 모든 쿠키에 Secure를 붙인다(HttpOnly·SameSite 규칙은 그대로).
+- 관리자: 비밀번호가 없거나 기본값(admin1234)이거나 12자 미만·영문+숫자 미포함이면 블로그
+  서버가 켜지지 않는다.
+- 실행: 회원 서버는 `php -S`가 아닌 정식 웹 서버(Nginx + PHP-FPM)에서 public/만 문서 루트로 둔다.
+  블로그 서버는 앞단 웹 서버 뒤에서 127.0.0.1에만 연다. 블로그·회원 서버는 서로 다른 https 주소를 쓴다.
+- 실제 IP: IP 기준 제한은 MUST 실제 방문자 IP로 센다. X-Forwarded-For·X-Forwarded-Proto는
+  배포 설정에 적은 믿는 프록시에서 온 것만 믿는다.
+- 설정 오류는 안전한 쪽으로: 필수 설정이 빠지거나 틀리면 블로그 서버는 켜지지 않고, 회원 서버는
+  모든 요청을 거절하며, 무엇을 고칠지 한국어로 안내한다. 이때 데이터는 건드리지 않는다.
+- 기준 환경: 배포 절차·설정 예시는 코드 저장소의 deploy/ 문서가 기준이며, 리눅스 VPS(Ubuntu) +
+  Nginx + PHP-FPM + Let's Encrypt를 기준 환경으로 한다.
+
+근거: 인터넷에 공개되는 순간 평문 통신·기본 비밀번호·프록시 뒤 IP 혼동이 가장 먼저 노려진다.
+개발 모드를 그대로 두어야 원칙 II(설치 없이 돈다)를 지킬 수 있다.
 
 ## 개발 흐름과 품질 관문
 
@@ -106,6 +136,8 @@ Sync Impact Report
    - 각 완료 기준을 실제 요청(브라우저 또는 curl)으로 재현해 통과
    - 보안 항목은 화면을 우회한 직접 요청으로 거절되는지 확인
    - 기존 blog.db로 서버를 켜 데이터가 그대로인지 확인
+   - 공개 모드에 영향을 주는 변경은 공개 모드 설정으로도 켜서 확인(로컬에서는 믿는 프록시
+     머리글로 https를 흉내 내 점검)
    - requirements.md 갱신
 
 ## Governance
@@ -119,4 +151,4 @@ Sync Impact Report
 - 실행 중 참고 문서는 `requirements.md`이며, 원본은 Claude Docs 문서
   "나만의 블로그 요구사항 정의서"다.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-07
+**Version**: 1.1.0 | **Ratified**: 2026-10-07 | **Last Amended**: 2026-10-08
